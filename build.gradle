@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.24'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group = "com.vadnir"
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'fren_gor'
+        url 'https://nexus.frengor.com/repository/public/'
+    }
+    maven {
+        url = "https://repo.codemc.org/repository/maven-public/"
+    }
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
+}
+
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
+    compileOnly 'com.github.simplix-softworks:simplixstorage:3.2.7'
+    compileOnly 'com.frengor:ultimateadvancementapi-shadeable:2.2.8'
+    compileOnly "io.github.miniplaceholders:miniplaceholders-api:2.2.3"
+
+    implementation "net.kyori:adventure-platform-bukkit:4.3.2"
+    implementation "dev.jorel:commandapi-bukkit-shade:9.4.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release.set(targetJavaVersion)
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('paper-plugin.yml') {
+        expand props
+    }
+}
+
+shadowJar {
+    dependencies {
+        include dependency("dev.jorel:commandapi-bukkit-shade:9.4.0")
+        include dependency("com.github.simplix-softworks:simplixstorage:3.2.7")
+        include dependency("com.frengor:ultimateadvancementapi-shadeable:2.2.8")
+    }
+
+    relocate("de.leonhard.storage", "com.vadnir.dependencies.simplixstorage")
+    relocate("dev.jorel.commandapi", "com.vadnir.dependencies.commandapi")
+    relocate("com.fren_gor.ultimateAdvancementAPI", "com.vadnir.dependencies.ultimateadvancementapi")
+}
+
+
+kotlin {
+    jvmToolchain(17)
+}

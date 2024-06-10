@@ -1,0 +1,4 @@
+name: PuduBingo
+version: '${version}'
+main: com.vadnir.pudubingo.PuduBingo
+api-version: '1.20'
